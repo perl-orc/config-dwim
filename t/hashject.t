@@ -2,8 +2,6 @@ use Test::More;
 
 use Config::DWIM::Hashject;
 
-local *Hj = \*Config::DWIM::Hashject;
-
 my $h = Config::DWIM::Hashject->new({
   foo => 'bar',
   bar => 'baz',
