@@ -1,5 +1,88 @@
 package Config::DWIM::Hashject;
 
+use Scalar::Util qw(blessed);
+use Data::Dumper qw(Dumper);
+
+sub _fold {
+  my $name = shift;
+  $name =~ s/[^a-z_]+/_/g;
+  $name =~ s/__+/_/g;
+  $name;
+}
+
+sub _gen_accessor {
+  my ($self, $name, $constant) = @_;
+  *{blessed($self)."::$name"} = sub {$constant};
+}
+
+sub is_package_taken {
+  return !!%{(shift)."::"};
+}
+
+sub _rebless {
+  my ($self,$package) = @_;
+  return bless {%$self}, $package;
+}
+
+sub _try_for_package {
+  my ($self, $package) = @_;
+  return 0 if is_package_taken($package);
+  return _rebless($self,$package);
+}
+
+sub _gen_package {
+  my $self = shift;
+  my $root = (blessed($self)."::gensym");
+  my $counter = do {
+    no warnings 'uninitialized';
+    # -3: AUTOLOAD, ISA, DESTROY
+    keys( %$self ) - 3;
+  };
+  my $ret;
+  for( ; !$ret ; $counter++) {
+    my $name = $root . $counter;
+    $ret = $self->_try_for_package($name);
+  }
+  {
+    no strict 'refs';
+    @{(blessed $ret)."::ISA"} = qw(Config::DWIM::Hashject);
+  }
+  $ret;
+}
+
+sub _gen_accessors {
+  my $self = shift;
+  my %taken;
+  foreach my $k (keys %$self) {
+    my $folded = _fold($k);
+    if (defined($taken{$folded})) {
+      $taken{$folded} = [(ref($taken{$folded}) eq 'ARRAY' ? @{$taken{$folded}} : $taken{$folded}), $self->{$k}];
+    } else {
+      $taken{$folded} = $self->{$k};
+    }
+  }
+  foreach my $k (keys %taken) {
+    my $val = $taken{$k};
+    my $name = _fold($k);
+    $self->_gen_accessor($name, $val);
+  }
+  $self;
+}
+
+sub _setup {
+  shift->_gen_package->_gen_accessors;
+}
+
+sub new {
+  my ($class,$hashref) = @_;
+  bless $hashref, $class;
+  $hashref->_setup;
+}
+
+sub get {
+  my ($self, $key) = @_;
+  return $self->{$key};
+}
 
 "Hashject is a really stupid name"
 __END__
@@ -38,3 +121,6 @@ Returns the entry from the hashject with the exactly matching key C<$key>.
 
 Returns the list of keys in the hashject.
 
+=head1 CAVEAT
+
+This module leaks memory very slowly. New packages will be allocated as a hack to generate accessors without using AUTOLOAD (which is a more horrible hack). These packages will never be reaped. If you're going to regularly parse files using this during a process, you'll want to occasionally reap the process (good anyway, since most modules are badly behaved). If you're reading a config once per process run, this will not be a problem at all.
