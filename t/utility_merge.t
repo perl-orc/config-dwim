@@ -119,20 +119,16 @@ is_deeply(merge($test_s[0],$test_ar[0],'l'), $test_ar[0]);
 is_deeply(merge($test_s[0],$test_hr[0],'r'), $test_hr[0]);
 
 # Simple left/right priority tests
-is_deeply(merge_ar($test_ar[0],$test_ar[1],'r'),$test_ar[1]);
-is_deeply(merge_ar($test_ar[1],$test_ar[0],'l'),$test_ar[1]);
-is_deeply(merge_ar($test_ar[0],$test_ar[1],'l'),$test_ar[0]);
-is_deeply(merge_ar($test_ar[1],$test_ar[0],'r'),$test_ar[0]);
+is_deeply(merge($test_ar[0],$test_ar[1],'r'),$test_ar[1]);
+is_deeply(merge($test_ar[1],$test_ar[0],'l'),$test_ar[1]);
+is_deeply(merge($test_ar[0],$test_ar[1],'l'),$test_ar[0]);
+is_deeply(merge($test_ar[1],$test_ar[0],'r'),$test_ar[0]);
 is_deeply(merge_hr($test_hr[0],$test_hr[3],'r'),$out_hr[0]);
 is_deeply(merge_hr($test_hr[0],$test_hr[3],'l'),$out_hr[1]);
 is_deeply(merge_hr($test_hr[1],$test_hr[2],'l'),$out_hr[2]);
 is_deeply(merge_hr($test_hr[1],$test_hr[2],'r'),$out_hr[3]);
 
 # Simple left/right priority merge tests
-is_deeply(merge($test_ar[0],$test_ar[1],'r'),$test_ar[1]);
-is_deeply(merge($test_ar[1],$test_ar[0],'l'),$test_ar[1]);
-is_deeply(merge($test_ar[0],$test_ar[1],'l'),$test_ar[0]);
-is_deeply(merge($test_ar[1],$test_ar[0],'r'),$test_ar[0]);
 is_deeply(merge($test_hr[0],$test_hr[3],'r'),$out_hr[0]);
 is_deeply(merge($test_hr[0],$test_hr[3],'l'),$out_hr[1]);
 is_deeply(merge($test_hr[1],$test_hr[2],'l'),$out_hr[2]);
@@ -143,15 +139,34 @@ is_deeply(merge($test_hr[0],$test_hr[2],'l'),$out_hr[6]);
 is_deeply(merge($test_hr[0],$test_hr[2],'r'),$out_hr[7]);
 
 # Nested merge tests
-use Data::Dumper 'Dumper';
 is_deeply(merge(@{$nested_tests[0]->{'in'}}), $nested_tests[0]->{'out'});
 is_deeply(merge(@{$nested_tests[1]->{'in'}}), $nested_tests[1]->{'out'});
-# foreach my $test (@nested_tests) {
-#   is_deeply(merge(@{$test->{'in'}}), $test->{'out'});
-# }
 
 # Merge with code
 
-# Intelligent merge
+sub dir_l {
+  return shift;
+}
+sub dir_r {
+  shift;
+  return shift;
+}
+
+is_deeply(merge($test_ar[0],$test_ar[1],\&dir_r),$test_ar[1]);
+is_deeply(merge($test_ar[1],$test_ar[0],\&dir_l),$test_ar[1]);
+is_deeply(merge($test_ar[0],$test_ar[1],\&dir_l),$test_ar[0]);
+is_deeply(merge($test_ar[1],$test_ar[0],\&dir_r),$test_ar[0]);
+is_deeply(merge($test_hr[0],$test_hr[3],\&dir_r),$out_hr[0]);
+is_deeply(merge($test_hr[0],$test_hr[3],\&dir_l),$out_hr[1]);
+is_deeply(merge($test_hr[1],$test_hr[2],\&dir_l),$out_hr[2]);
+is_deeply(merge($test_hr[1],$test_hr[2],\&dir_r),$out_hr[3]);
+is_deeply(merge($test_hr[1],$test_hr[3],\&dir_r),$out_hr[4]);
+is_deeply(merge($test_hr[1],$test_hr[3],\&dir_l),$out_hr[5]);
+is_deeply(merge($test_hr[0],$test_hr[2],\&dir_l),$out_hr[6]);
+is_deeply(merge($test_hr[0],$test_hr[2],\&dir_r),$out_hr[7]);
+
+# Includes
+
+# Object inflation
 
 done_testing;
