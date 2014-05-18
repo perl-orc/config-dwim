@@ -1,5 +1,11 @@
 package Config::DWIM::Hashject;
 
+use strict;
+use warnings;
+
+use Config::DWIM::Utility;
+
+use Carp;
 use Scalar::Util qw(blessed);
 use Data::Dumper qw(Dumper);
 
@@ -13,11 +19,14 @@ sub _fold {
 
 sub _gen_accessor {
   my ($self, $name, $constant) = @_;
+  no strict 'refs';
   *{blessed($self)."::$name"} = sub {$constant};
 }
 
 sub is_package_taken {
-  return !!%{(shift)."::"};
+  no strict 'refs';
+  my $name = shift() . "::";
+  return !!%{"$name"};
 }
 
 sub _rebless {
@@ -54,22 +63,28 @@ sub _gen_package {
 
 sub _gen_accessors {
   my $self = shift;
-  my %taken;
-  my %hash = @$self;
-  foreach my $k (keys %hash) {
+  my @keys;
+  my @values;
+  my @entries = @{Config::DWIM::Utility::chunk($self, 2)};
+  foreach my $kv (@entries) {
+	my ($k, $v) = @$kv;
     my $folded = _fold($k);
-    if (defined($taken{$folded})) {
-      $taken{$folded} = [(ref($taken{$folded}) eq 'ARRAY' ? @{$taken{$folded}} : $taken{$folded}), $hash{$k}];
+	if (grep {$_ eq $folded} @keys) {
+	  my $i;
+	  for ($i=0; $keys[$i] ne $folded; $i++) {}
+	  $values[$i] = [(ref($values[$i]) eq 'ARRAY' ? @{$values[$i]} : $values[$i]), $v];
     } else {
-      $taken{$folded} = $hash{$k};
+	  push @keys, $k;
+	  push @values, $v;
     }
   }
-  foreach my $k (keys %taken) {
-    my $val = $taken{$k};
+  foreach my $i (0..$#keys) {
+	my $k = $keys[$i];
+    my $val = $values[$i];
     my $name = _fold($k);
     $self->_gen_accessor($name, $val);
   }
-  bless {%hash}, (blessed $self);
+  $self;
 }
 
 sub _setup {
