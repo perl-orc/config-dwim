@@ -164,4 +164,27 @@ is_deeply(merge($test_hr[1],$test_hr[3],\&dir_l),$out_hr[5]);
 is_deeply(merge($test_hr[0],$test_hr[2],\&dir_l),$out_hr[6]);
 is_deeply(merge($test_hr[0],$test_hr[2],\&dir_r),$out_hr[7]);
 
+# Processing - Simple tests
+
+my @samples = map process($out_hr[$_]), 0..7;
+
+isa_ok($samples[0], 'Config::DWIM::Hashject');
+isa_ok($samples[1], 'Config::DWIM::Hashject');
+isa_ok($samples[2], 'Config::DWIM::Hashject');
+isa_ok($samples[3], 'Config::DWIM::Hashject');
+isa_ok($samples[4], 'Config::DWIM::Hashject');
+isa_ok($samples[5], 'Config::DWIM::Hashject');
+isa_ok($samples[6], 'Config::DWIM::Hashject');
+isa_ok($samples[7], 'Config::DWIM::Hashject');
+is_deeply([$samples[0]->keys], [keys %{$out_hr[0]}]); 
+is_deeply([$samples[1]->keys], [keys %{$out_hr[1]}]); 
+is_deeply([$samples[2]->keys], [keys %{$out_hr[2]}]); 
+is_deeply([$samples[3]->keys], [keys %{$out_hr[3]}]); 
+is_deeply([$samples[4]->keys], [keys %{$out_hr[4]}]); 
+is_deeply([$samples[5]->keys], [keys %{$out_hr[5]}]); 
+is_deeply([$samples[6]->keys], [keys %{$out_hr[6]}]); 
+is_deeply([$samples[7]->keys], [keys %{$out_hr[7]}]); 
+
+# Processing - Nesting
+
 done_testing;
