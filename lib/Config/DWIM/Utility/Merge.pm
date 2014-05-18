@@ -1,5 +1,7 @@
 package Config::DWIM::Utility::Merge;
 
+use Config::DWIM::Hashject;
+
 sub merge_hashrefs {
   my ($left, $right, $direction) = @_;
   my %new = (%$left, %$right);
@@ -43,6 +45,27 @@ sub merge {
   }
   # Default right
   return $right;
+}
+
+sub _process_ar {
+  my $thing = shift;
+  return map process($_), @$thing;
+}
+
+sub _process_hr {
+  my $thing = shift;
+  my %ret;
+  foreach my $k (keys %$thing) {
+    $ret{$k} = process($thing->{$k});
+  }
+  return Config::DWIM::Hashject->new({%ret});
+}
+
+sub process {
+  my $thing = shift;
+  return _process_hr($thing) if ref($thing) eq 'HASH';
+  return _process_ar($thing) if ref($thing) eq 'ARRAY';
+  return $thing;
 }
 
 qw(I really don't know what you mean)

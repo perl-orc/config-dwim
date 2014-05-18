@@ -7,10 +7,9 @@ use Config::DWIM::Utility::Merge;
 
 # Note: Tests are DELIBERATELY repeated boilerplate. Eases debugging.
 
-sub merge_ar { return Config::DWIM::Utility::Merge::merge_arrayrefs(@_); }
 sub merge_hr { return Config::DWIM::Utility::Merge::merge_hashrefs(@_); }
 sub merge { return Config::DWIM::Utility::Merge::merge(@_); }
-sub int_merge { return Config::DWIM::Utility::Merge::intelligent_merge(@_); }
+sub process { return Config::DWIM::Utility::Merge::process(@_); }
 
 my @test_ar = (
   [qw(foo bar)],
@@ -164,9 +163,5 @@ is_deeply(merge($test_hr[1],$test_hr[3],\&dir_r),$out_hr[4]);
 is_deeply(merge($test_hr[1],$test_hr[3],\&dir_l),$out_hr[5]);
 is_deeply(merge($test_hr[0],$test_hr[2],\&dir_l),$out_hr[6]);
 is_deeply(merge($test_hr[0],$test_hr[2],\&dir_r),$out_hr[7]);
-
-# Includes
-
-# Object inflation
 
 done_testing;
