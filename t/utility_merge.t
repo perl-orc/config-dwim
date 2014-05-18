@@ -187,4 +187,21 @@ is_deeply([$samples[7]->keys], [keys %{$out_hr[7]}]);
 
 # Processing - Nesting
 
+my $nested = {
+  foo => [
+    {
+      baz => 'quux',
+    },
+  ],
+};
+
+my $h = process($nested);
+
+isa_ok($h, 'Config::DWIM::Hashject');
+is_deeply([$h->keys], [keys %$nested]);
+warn '::'.$h->foo;
+is(ref($h->foo), 'ARRAY');
+isa_ok($h->foo->[0], 'Config::DWIM::Hashject');
+is($h->foo->[0]->baz, 'quux');
+
 done_testing;

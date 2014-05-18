@@ -49,7 +49,7 @@ sub merge {
 
 sub _process_ar {
   my $thing = shift;
-  return map process($_), @$thing;
+  return [map process($_), @$thing];
 }
 
 sub _process_hr {
