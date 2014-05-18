@@ -1,26 +1,20 @@
 package Config::DWIM::Hashject;
 
+use Carp qw(confess);
 use strict;
 use warnings;
 
 use Config::DWIM::Utility;
 
-use Carp;
 use Scalar::Util qw(blessed);
-use Data::Dumper qw(Dumper);
 
 sub _fold {
   my $name = shift;
-  $name =~ s/[^a-z]+/_/g;
+  $name =~ s/[^a-z]+/_/gi;
 # In theory the next line is superfluous;
   $name =~ s/__+/_/g;
   $name;
-}
-
-sub _gen_accessor {
-  my ($self, $name, $constant) = @_;
-  no strict 'refs';
-  *{blessed($self)."::$name"} = sub {$constant};
+  
 }
 
 sub is_package_taken {
@@ -61,11 +55,17 @@ sub _gen_package {
   $ret;
 }
 
+sub _gen_accessor {
+  my ($self, $name, $constant) = @_;
+  no strict 'refs';
+  *{blessed($self)."::$name"} = sub () {$constant};
+}
+
 sub _gen_accessors {
   my $self = shift;
   my @keys;
   my @values;
-  my @entries = @{Config::DWIM::Utility::chunk($self, 2)};
+  my @entries = @{(Config::DWIM::Utility::chunk([@$self], 2),)};
   foreach my $kv (@entries) {
 	my ($k, $v) = @$kv;
     my $folded = _fold($k);
@@ -88,11 +88,14 @@ sub _gen_accessors {
 }
 
 sub _setup {
-  shift->_gen_package->_gen_accessors;
+  my $self = shift;
+  my $new = $self->_gen_package;
+  $new->_gen_accessors;
 }
 
 sub new {
   my ($class,$arrayref) = @_;
+  confess ("Expected ArrayRef") unless ref $arrayref eq 'ARRAY';
   bless $arrayref, $class;
   $arrayref->_setup;
 }

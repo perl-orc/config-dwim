@@ -9,6 +9,8 @@ my $h = Config::DWIM::Hashject->new([
   foo_bar => 'baz_quux1',
   "foo:__-:bar" => 'baz_quux2',
 ]);
+use Data::Dumper 'Dumper';
+warn Dumper \%Config::DWIM::Hashject::gensym1;
 is($h->foo,'bar');
 is($h->bar,'baz');
 # This also tests order preservation. But not that well
