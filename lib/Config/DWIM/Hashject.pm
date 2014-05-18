@@ -5,7 +5,8 @@ use Data::Dumper qw(Dumper);
 
 sub _fold {
   my $name = shift;
-  $name =~ s/[^a-z_]+/_/g;
+  $name =~ s/[^a-z]+/_/g;
+# In theory the next line is superfluous;
   $name =~ s/__+/_/g;
   $name;
 }
@@ -21,7 +22,7 @@ sub is_package_taken {
 
 sub _rebless {
   my ($self,$package) = @_;
-  return bless {%$self}, $package;
+  return bless [@$self], $package;
 }
 
 sub _try_for_package {
@@ -36,7 +37,8 @@ sub _gen_package {
   my $counter = do {
     no warnings 'uninitialized';
     # -3: AUTOLOAD, ISA, DESTROY
-    keys( %$self ) - 3;
+	my %hash = @$self;
+    keys( %hash ) - 3;
   };
   my $ret;
   for( ; !$ret ; $counter++) {
@@ -53,12 +55,13 @@ sub _gen_package {
 sub _gen_accessors {
   my $self = shift;
   my %taken;
-  foreach my $k (keys %$self) {
+  my %hash = @$self;
+  foreach my $k (keys %hash) {
     my $folded = _fold($k);
     if (defined($taken{$folded})) {
-      $taken{$folded} = [(ref($taken{$folded}) eq 'ARRAY' ? @{$taken{$folded}} : $taken{$folded}), $self->{$k}];
+      $taken{$folded} = [(ref($taken{$folded}) eq 'ARRAY' ? @{$taken{$folded}} : $taken{$folded}), $hash{$k}];
     } else {
-      $taken{$folded} = $self->{$k};
+      $taken{$folded} = $hash{$k};
     }
   }
   foreach my $k (keys %taken) {
@@ -66,7 +69,7 @@ sub _gen_accessors {
     my $name = _fold($k);
     $self->_gen_accessor($name, $val);
   }
-  $self;
+  bless {%hash}, (blessed $self);
 }
 
 sub _setup {
@@ -74,18 +77,21 @@ sub _setup {
 }
 
 sub new {
-  my ($class,$hashref) = @_;
-  bless $hashref, $class;
-  $hashref->_setup;
+  my ($class,$arrayref) = @_;
+  bless $arrayref, $class;
+  $arrayref->_setup;
 }
 
 sub get {
   my ($self, $key) = @_;
-  return $self->{$key};
+  my %hash = @$self;
+  return $hash{$key};
 }
 
 sub keys {
-  return keys %{shift()};
+  my $self = shift;
+  my %hash = @$self;
+  return keys %hash;
 }
 
 "Hashject is a really stupid name"
