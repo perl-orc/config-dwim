@@ -16,8 +16,8 @@ sub with_only_keys {
 
 sub chunk {
   my ($arrayref, $size) = @_;
-  return $arrayref unless ($size > 0);
-  return $arrayref unless @$arrayref > $size;
+  return [$arrayref] unless ($size > 0);
+  return [$arrayref] unless @$arrayref > $size;
   my @new;
   my @working = @$arrayref;
   while (@working) {
