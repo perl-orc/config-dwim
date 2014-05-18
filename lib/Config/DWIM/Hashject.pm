@@ -7,7 +7,6 @@ use warnings;
 use Config::DWIM::Utility;
 
 use Scalar::Util qw(blessed);
-
 sub _fold {
   my $name = shift;
   $name =~ s/[^a-z]+/_/gi;
@@ -65,7 +64,7 @@ sub _gen_accessors {
   my $self = shift;
   my @keys;
   my @values;
-  my @entries = @{(Config::DWIM::Utility::chunk([@$self], 2),)};
+  my @entries = @{Config::DWIM::Utility::chunk([@$self], 2)};
   foreach my $kv (@entries) {
 	my ($k, $v) = @$kv;
     my $folded = _fold($k);
