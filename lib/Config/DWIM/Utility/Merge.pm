@@ -49,16 +49,18 @@ sub merge {
 
 sub _process_ar {
   my $thing = shift;
-  return [map process($_), @$thing];
+  my @ret = map process($_), @$thing;
+  return [@ret];
 }
 
 sub _process_hr {
   my $thing = shift;
-  my %ret;
+  my @ret;
   foreach my $k (keys %$thing) {
-    $ret{$k} = process($thing->{$k});
+	@ret = (@ret, $k, process($thing->{$k}));
   }
-  return Config::DWIM::Hashject->new({%ret});
+  my $ret = Config::DWIM::Hashject->new([@ret]);
+  $ret;
 }
 
 sub process {
