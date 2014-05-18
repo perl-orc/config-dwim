@@ -1,4 +1,5 @@
 use Test::More;
+use Test::Differences;
 
 use strict;
 use warnings;
@@ -112,34 +113,34 @@ my @nested_tests = (
 );
 
 # Simple scoring tests
-is_deeply(merge($test_ar[0],$test_hr[0],'l'), $test_hr[0]);
-is_deeply(merge($test_hr[0],$test_ar[0],'r'), $test_hr[0]);
-is_deeply(merge($test_s[0],$test_ar[0],'l'), $test_ar[0]);
-is_deeply(merge($test_s[0],$test_hr[0],'r'), $test_hr[0]);
+eq_or_diff(merge($test_ar[0],$test_hr[0],'l'), $test_hr[0]);
+eq_or_diff(merge($test_hr[0],$test_ar[0],'r'), $test_hr[0]);
+eq_or_diff(merge($test_s[0],$test_ar[0],'l'), $test_ar[0]);
+eq_or_diff(merge($test_s[0],$test_hr[0],'r'), $test_hr[0]);
 
 # Simple left/right priority tests
-is_deeply(merge($test_ar[0],$test_ar[1],'r'),$test_ar[1]);
-is_deeply(merge($test_ar[1],$test_ar[0],'l'),$test_ar[1]);
-is_deeply(merge($test_ar[0],$test_ar[1],'l'),$test_ar[0]);
-is_deeply(merge($test_ar[1],$test_ar[0],'r'),$test_ar[0]);
-is_deeply(merge_hr($test_hr[0],$test_hr[3],'r'),$out_hr[0]);
-is_deeply(merge_hr($test_hr[0],$test_hr[3],'l'),$out_hr[1]);
-is_deeply(merge_hr($test_hr[1],$test_hr[2],'l'),$out_hr[2]);
-is_deeply(merge_hr($test_hr[1],$test_hr[2],'r'),$out_hr[3]);
+eq_or_diff(merge($test_ar[0],$test_ar[1],'r'),$test_ar[1]);
+eq_or_diff(merge($test_ar[1],$test_ar[0],'l'),$test_ar[1]);
+eq_or_diff(merge($test_ar[0],$test_ar[1],'l'),$test_ar[0]);
+eq_or_diff(merge($test_ar[1],$test_ar[0],'r'),$test_ar[0]);
+eq_or_diff(merge_hr($test_hr[0],$test_hr[3],'r'),$out_hr[0]);
+eq_or_diff(merge_hr($test_hr[0],$test_hr[3],'l'),$out_hr[1]);
+eq_or_diff(merge_hr($test_hr[1],$test_hr[2],'l'),$out_hr[2]);
+eq_or_diff(merge_hr($test_hr[1],$test_hr[2],'r'),$out_hr[3]);
 
 # Simple left/right priority merge tests
-is_deeply(merge($test_hr[0],$test_hr[3],'r'),$out_hr[0]);
-is_deeply(merge($test_hr[0],$test_hr[3],'l'),$out_hr[1]);
-is_deeply(merge($test_hr[1],$test_hr[2],'l'),$out_hr[2]);
-is_deeply(merge($test_hr[1],$test_hr[2],'r'),$out_hr[3]);
-is_deeply(merge($test_hr[1],$test_hr[3],'r'),$out_hr[4]);
-is_deeply(merge($test_hr[1],$test_hr[3],'l'),$out_hr[5]);
-is_deeply(merge($test_hr[0],$test_hr[2],'l'),$out_hr[6]);
-is_deeply(merge($test_hr[0],$test_hr[2],'r'),$out_hr[7]);
+eq_or_diff(merge($test_hr[0],$test_hr[3],'r'),$out_hr[0]);
+eq_or_diff(merge($test_hr[0],$test_hr[3],'l'),$out_hr[1]);
+eq_or_diff(merge($test_hr[1],$test_hr[2],'l'),$out_hr[2]);
+eq_or_diff(merge($test_hr[1],$test_hr[2],'r'),$out_hr[3]);
+eq_or_diff(merge($test_hr[1],$test_hr[3],'r'),$out_hr[4]);
+eq_or_diff(merge($test_hr[1],$test_hr[3],'l'),$out_hr[5]);
+eq_or_diff(merge($test_hr[0],$test_hr[2],'l'),$out_hr[6]);
+eq_or_diff(merge($test_hr[0],$test_hr[2],'r'),$out_hr[7]);
 
 # Nested merge tests
-is_deeply(merge(@{$nested_tests[0]->{'in'}}), $nested_tests[0]->{'out'});
-is_deeply(merge(@{$nested_tests[1]->{'in'}}), $nested_tests[1]->{'out'});
+eq_or_diff(merge(@{$nested_tests[0]->{'in'}}), $nested_tests[0]->{'out'});
+eq_or_diff(merge(@{$nested_tests[1]->{'in'}}), $nested_tests[1]->{'out'});
 
 # Merge with code
 
@@ -151,18 +152,18 @@ sub dir_r {
   return shift;
 }
 
-is_deeply(merge($test_ar[0],$test_ar[1],\&dir_r),$test_ar[1]);
-is_deeply(merge($test_ar[1],$test_ar[0],\&dir_l),$test_ar[1]);
-is_deeply(merge($test_ar[0],$test_ar[1],\&dir_l),$test_ar[0]);
-is_deeply(merge($test_ar[1],$test_ar[0],\&dir_r),$test_ar[0]);
-is_deeply(merge($test_hr[0],$test_hr[3],\&dir_r),$out_hr[0]);
-is_deeply(merge($test_hr[0],$test_hr[3],\&dir_l),$out_hr[1]);
-is_deeply(merge($test_hr[1],$test_hr[2],\&dir_l),$out_hr[2]);
-is_deeply(merge($test_hr[1],$test_hr[2],\&dir_r),$out_hr[3]);
-is_deeply(merge($test_hr[1],$test_hr[3],\&dir_r),$out_hr[4]);
-is_deeply(merge($test_hr[1],$test_hr[3],\&dir_l),$out_hr[5]);
-is_deeply(merge($test_hr[0],$test_hr[2],\&dir_l),$out_hr[6]);
-is_deeply(merge($test_hr[0],$test_hr[2],\&dir_r),$out_hr[7]);
+eq_or_diff(merge($test_ar[0],$test_ar[1],\&dir_r),$test_ar[1]);
+eq_or_diff(merge($test_ar[1],$test_ar[0],\&dir_l),$test_ar[1]);
+eq_or_diff(merge($test_ar[0],$test_ar[1],\&dir_l),$test_ar[0]);
+eq_or_diff(merge($test_ar[1],$test_ar[0],\&dir_r),$test_ar[0]);
+eq_or_diff(merge($test_hr[0],$test_hr[3],\&dir_r),$out_hr[0]);
+eq_or_diff(merge($test_hr[0],$test_hr[3],\&dir_l),$out_hr[1]);
+eq_or_diff(merge($test_hr[1],$test_hr[2],\&dir_l),$out_hr[2]);
+eq_or_diff(merge($test_hr[1],$test_hr[2],\&dir_r),$out_hr[3]);
+eq_or_diff(merge($test_hr[1],$test_hr[3],\&dir_r),$out_hr[4]);
+eq_or_diff(merge($test_hr[1],$test_hr[3],\&dir_l),$out_hr[5]);
+eq_or_diff(merge($test_hr[0],$test_hr[2],\&dir_l),$out_hr[6]);
+eq_or_diff(merge($test_hr[0],$test_hr[2],\&dir_r),$out_hr[7]);
 
 # Processing - Simple tests
 
@@ -176,14 +177,14 @@ isa_ok($samples[4], 'Config::DWIM::Hashject');
 isa_ok($samples[5], 'Config::DWIM::Hashject');
 isa_ok($samples[6], 'Config::DWIM::Hashject');
 isa_ok($samples[7], 'Config::DWIM::Hashject');
-is_deeply([$samples[0]->keys], [keys %{$out_hr[0]}]); 
-is_deeply([$samples[1]->keys], [keys %{$out_hr[1]}]); 
-is_deeply([$samples[2]->keys], [keys %{$out_hr[2]}]); 
-is_deeply([$samples[3]->keys], [keys %{$out_hr[3]}]); 
-is_deeply([$samples[4]->keys], [keys %{$out_hr[4]}]); 
-is_deeply([$samples[5]->keys], [keys %{$out_hr[5]}]); 
-is_deeply([$samples[6]->keys], [keys %{$out_hr[6]}]); 
-is_deeply([$samples[7]->keys], [keys %{$out_hr[7]}]); 
+eq_or_diff([sort {$a cmp $b} $samples[0]->keys], [sort {$a cmp $b} keys %{$out_hr[0]}]); 
+eq_or_diff([sort {$a cmp $b} $samples[1]->keys], [sort {$a cmp $b} keys %{$out_hr[1]}]); 
+eq_or_diff([sort {$a cmp $b} $samples[2]->keys], [sort {$a cmp $b} keys %{$out_hr[2]}]); 
+eq_or_diff([sort {$a cmp $b} $samples[3]->keys], [sort {$a cmp $b} keys %{$out_hr[3]}]); 
+eq_or_diff([sort {$a cmp $b} $samples[4]->keys], [sort {$a cmp $b} keys %{$out_hr[4]}]); 
+eq_or_diff([sort {$a cmp $b} $samples[5]->keys], [sort {$a cmp $b} keys %{$out_hr[5]}]); 
+eq_or_diff([sort {$a cmp $b} $samples[6]->keys], [sort {$a cmp $b} keys %{$out_hr[6]}]); 
+eq_or_diff([sort {$a cmp $b} $samples[7]->keys], [sort {$a cmp $b} keys %{$out_hr[7]}]); 
 
 # Processing - Nesting
 
@@ -198,8 +199,7 @@ my $nested = {
 my $h = process($nested);
 
 isa_ok($h, 'Config::DWIM::Hashject');
-is_deeply([$h->keys], [keys %$nested]);
-warn '::'.$h->foo;
+eq_or_diff([$h->keys], [keys %$nested]);
 is(ref($h->foo), 'ARRAY');
 isa_ok($h->foo->[0], 'Config::DWIM::Hashject');
 is($h->foo->[0]->baz, 'quux');
