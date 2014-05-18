@@ -84,6 +84,10 @@ sub get {
   return $self->{$key};
 }
 
+sub keys {
+  return keys %{shift()};
+}
+
 "Hashject is a really stupid name"
 __END__
 
