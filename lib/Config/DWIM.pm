@@ -1,10 +1,179 @@
 package Config::DWIM;
 
-use 5.14;
+use 5.14.0;
 use strict;
 use warnings FATAL => 'all';
 
+use Carp qw/ cluck /;
+
+use Config::DWIM::Utility;
+use Config::DWIM::Utility::Merge;
+use Config::Any;
+use Path::Tiny qw(path);
+use Data::Dumper 'Dumper';
+
 our $VERSION = '0.01';
+
+sub _process {
+  my ($self, @args) = @_;
+  return Config::DWIM::Utility::Merge::process(@args);
+}
+
+sub _merge {
+  my ($self, @args) = @_;
+  return Config::DWIM::Utility::reduce(
+    sub {Config::DWIM::Utility::Merge::merge(@args);},
+    @args
+  );
+}
+
+sub _include_path_stems {
+  my ($self, $library, $stems) = @_;
+  map {
+    my $p = "${_}/${library}";
+    # warn "Pushing to search path by stem path: $p";
+    $p;
+  } @$stems;
+}
+sub _include_path_include {
+  my ($self, $library, $stems) = @_;
+  my $include_path = path($self->{'include_path'});
+  my $p = "@{[${include_path}->absolute]}/${library}";
+  # warn "Pushing to search path by include path: $p";
+  $p;
+}
+
+sub _include_path_stem_includes {
+  my ($self, $library, $stems) = @_;
+  my $include_path = $self->{'include_path'};
+  if ($include_path) {
+    $include_path = path($include_path);
+    map {
+      if ($include_path->absolute eq $include_path) {
+        # warn "Absolute path found, not pushing root with stem: $include_path";
+      } else {
+        my $p = "${_}/${include_path}/${library}";
+        # warn "absolute: " . $include_path->absolute;
+        # warn "relative: " . $include_path;
+        # warn "library: " . $library;
+        # warn "Pushing to search path by stem and relative include path: $p";
+        $p;
+      }
+    } @$stems;
+  }
+}
+
+sub dedupe {
+  my %foo;
+  @foo{@_} = ();
+  sort {$a cmp $b} keys %foo;
+}
+
+sub _get_include_paths {
+  my ($self, $include, $stems) = @_;
+  my @stem_roots = dedupe(map {
+    path($_)->parent->absolute;
+  } @$stems);
+  # warn Dumper [@stem_roots];
+  my @include_paths;
+  $include = path($include);
+  push @include_paths,
+    $self->_include_path_include($include, [@stem_roots]),
+    $self->_include_path_stems($include, [@stem_roots]),
+    $self->_include_path_stem_includes($include, [@stem_roots]);
+  return @include_paths;
+}
+
+sub _get_include {
+  my ($self, $include, $stems) = @_;
+  my @include_paths = $self->_get_include_paths($include, $stems);
+  my $ret = $self->read_stems(map {"".$_} @include_paths);
+  if (!$ret) {
+    # warn "Include failed: $include:" . Dumper [@include_paths];
+  }
+  return $ret;
+}
+
+sub _include_merge {
+  my ($self,@things) = @_;
+  # warn "include_merge: " . Dumper [@things];
+  my $ret;
+  my $include_merger = ($self->{'include_merger'} || 'r');
+  if ($include_merger eq 'r') {
+#    cluck "Popping";
+    $ret = pop @things;
+  } elsif ($include_merger eq 'l') {
+     # warn "Shifting";
+    $ret = shift @things;
+  } else {
+    # warn "Defaulting";
+    # Default to size
+    $ret = $self->_merge(@things);
+  }
+  # warn "Included: " . Dumper $ret;
+  return $ret;
+}
+
+sub _includes {
+  # warn "includes: @_";
+  my ($self, $thing, $stems) = @_;
+  return () if !$thing;
+  return [map $self->_includes($_),@$thing] if ref($thing) eq 'ARRAY';
+  return $thing if ref($thing) ne 'HASH';
+
+  my %new;
+  my $include;
+  # We have to mark now and sweep later so we've transformed local children
+  # before we try the include. Otherwise we're left in a non-atomic state
+  foreach my $k (keys %$thing) {
+    if ($k eq $self->{'include_key'}) {
+      # warn "Found include key $k";
+      $include = $k;
+    } else {
+      $new{$k} = $self->_includes($thing->{$k},$stems);
+      # warn Dumper $thing;
+      # warn '$new{'.$k. '}: '.Dumper($new{$k});
+    }
+  }
+  if ($include) {
+    # warn "Acting on include key $include:";
+    my $included = $self->_get_include($thing->{$include},$stems);
+    return $self->_include_merge({%new}, $included);
+  }
+  return {%new};
+}
+
+sub _preprocess {
+  my ($self, $configs, $stems) = @_;
+#  cluck @$configs;
+  my $merged = $self->_merge(@$configs);
+  # warn "Merged: " . ($merged ? Dumper($merged) : '');
+  my $included = $self->_includes($merged, $stems);
+  # warn "Included: " . ($included ? Dumper($included) : '');
+  $included;
+}
+
+sub read_stems {
+  my ($self, @stems) = @_;
+  my @configs = values %{Config::Any->load_stems({
+    stems => [@stems],
+    use_ext => 1,
+    flatten_to_hash => 1,
+  })};
+  # warn "Read stems : " . Dumper [@configs];
+  return $self->_preprocess([@configs],[@stems]);
+}
+
+sub process {
+  my ($self, @stems) = @_;
+  my $config = $self->read_stems;
+  $self->_process($config);
+}
+
+sub new {
+  my ($class, %kwargs) = @_;
+  bless {%kwargs}, $class;
+}
 
 q(I think you know what I mean)
 __END__
@@ -15,15 +184,17 @@ Config::DWIM - Config that Does What I Mean
 
 =head1 SYNOPSIS
 
-  use Config::DWIM;
-  
-  # We'll use a key 'environment' to load in a config
-  my $conf = Config::DWIM->new(
-    include_key => 'environment',
-    include_path => 'environments',
-  );
-  # Find 'config.yml', 'config.cnf', 'config.json' etc.
-  my $conf->read_stems('config');
+    use Config::DWIM;
+    # We'll use a key 'environment' to load in a config
+    my $conf = Config::DWIM->new(
+      include_key => 'environment',
+      include_path => 'environments',
+      include_merger => 'r'
+    );
+    # Find 'config.yml', 'config.cnf', 'config.json' etc.
+    my config = $conf->read_stems('config');
+    # Get the same back as a L<Config::DWIM::Hashject>
+    $config = $conf->process('config');
 
 =head1 HOW DOES IT WORK?
 
@@ -86,6 +257,12 @@ Each stem is read and the config is turned into a hashref. Configs are then merg
 =head1 AUTHOR
 
 James Edward Daniel, C<< <cpan at dysfunctionalprogramming.org> >>
+
+=head1 CAVEATS
+
+Hashjects (and thus the return of process()) leak packages, one per hashref instantiated. Minor if you're using it for the intended purpose, but if you're abusing it...
+
+This module doesn't correctly process includes. You probably won't notice, but if some of the stems are in different directories, then ALL stems are used as the base path from which to append the relative prefix.
 
 =head1 BUGS
 
