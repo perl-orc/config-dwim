@@ -1,5 +1,7 @@
 package Config::DWIM;
 
+# ABSTRACT: Config::DWIM - Config that Does What I Mean
+
 use 5.14.0;
 use strict;
 use warnings FATAL => 'all';
