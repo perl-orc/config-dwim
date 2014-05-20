@@ -202,7 +202,7 @@ my $test_structure =  {
 eq_or_diff(read_stems($config_paths{a}), $test_structure, "a.pl matches the test structure");
 
 SKIP: {
-  eval { require Config::Tiny; 1 } || skip("Config::Tiny inst installed",1);
+  eval { require Config::Tiny; 1 } || skip("Config::Tiny is not installed",1);
   eq_or_diff(read_stems($config_paths{b}), $test_structure, "b.ini matches the test structure");
 };
 
@@ -222,7 +222,7 @@ SKIP: {
 };
 
 SKIP: {
-  eval { require "JSON::DWIW"; 1} || eval { require "JSON::XS"; 1} || eval { require "JSON::Syck"; 1} || eval { require "JSON"; 1} || skip "No JSON modules are installed",0;
+  eval { require JSON::DWIW; 1} || eval { require JSON::XS; 1} || eval { require JSON::Syck; 1} || eval { require JSON; 1} || skip "No JSON modules are installed",0;
   eq_or_diff(read_stems($config_paths{f}), $test_structure, "f.json matches the test structure");
 };
 

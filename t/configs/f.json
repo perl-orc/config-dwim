@@ -1,5 +1,5 @@
 {
-  foo => ["bar","baz")],
-  bar => {"baz":{"quux":"foo"}},
-  baz => "quux"
+  "foo":["bar","baz"],
+  "bar":{"baz":{"quux":"foo"}},
+  "baz":"quux"
 }
