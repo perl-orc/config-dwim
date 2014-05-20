@@ -212,7 +212,7 @@ SKIP: {
 };
 
 SKIP: {
- eval { require "XML::Simple"; require "XML::NamespaceSupport"; 1} || skip("Needed XML modules are not installed",1);
+ eval { require "XML::Simple"; 1} || skip("Needed XML modules are not installed",1);
   eq_or_diff(read_stems($config_paths{d}), $test_structure, "d.xml matches the test structure");
 };
 
