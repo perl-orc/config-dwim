@@ -195,8 +195,6 @@ my $test_structure =  {
   baz => 'quux',
 };
 
-# FIXME: Some are not being run on my machine though the modules are present
-
 # 9. Tests for specific config file formats
 
 eq_or_diff(read_stems($config_paths{a}), $test_structure, "a.pl matches the test structure");
