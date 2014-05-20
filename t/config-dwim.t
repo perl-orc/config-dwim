@@ -176,7 +176,7 @@ ok(!defined($baz{'__include'}));
     shift @_;
     return @_;
   };
-  # I would really like this to work, but the module seems to work find so I can only presume the test is at fault. The bug is somewhere in _get_include otherwise
+  # I would really like this to work, but the module seems to work fine so I can only presume the test is at fault. The bug is somewhere in _get_include otherwise
   # warn $g;
   # eq_or_diff (
   #  $cd1->_preprocess([$g], ['config/__includes']),
