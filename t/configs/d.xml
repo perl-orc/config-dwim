@@ -1,0 +1,5 @@
+<opt baz="quux">
+  <bar name="baz" quux="foo" />
+  <foo>bar</foo>
+  <foo>baz</foo>
+</opt>

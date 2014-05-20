@@ -212,12 +212,12 @@ SKIP: {
 };
 
 SKIP: {
- eval { require "XML::Simple"; 1} || skip("Needed XML modules are not installed",1);
+ eval { require XML::Simple; 1} || skip("Needed XML modules are not installed",1);
   eq_or_diff(read_stems($config_paths{d}), $test_structure, "d.xml matches the test structure");
 };
 
 SKIP: {
-  eval { require "Config::General"; 1} || skip("Config::General is not installed",1);
+  eval { require Config::General; 1} || skip("Config::General is not installed",1);
   eq_or_diff(read_stems($config_paths{e}), $test_structure, "e.cnf matches the test structure");
 };
 
