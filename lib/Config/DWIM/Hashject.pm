@@ -13,7 +13,6 @@ sub _fold {
 # In theory the next line is superfluous;
   $name =~ s/__+/_/g;
   $name;
-  
 }
 
 sub is_package_taken {
